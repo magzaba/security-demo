@@ -17,6 +17,9 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
@@ -25,32 +28,29 @@ import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfig {//extends WebSecurityConfigurerAdapter{
-/*    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
-                .antMatchers("/", "/about").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .httpBasic();
-    }
-
-
-    @Bean
-    public UserDetailsService users(DataSource dataSource){
-        return new JdbcUserDetailsManager(dataSource);
-    }*/
+public class WebSecurityConfig {
 
         @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   AuthenticationFailureHandler authenticationFailureHandler,
+                                                   AuthenticationSuccessHandler authenticationSuccessHandler) throws Exception {
         return http.authorizeRequests(authorizeRequests ->
                         authorizeRequests
                                 .antMatchers(HttpMethod.GET, "/", "/about").permitAll()
+                                .antMatchers(HttpMethod.GET, "/info").hasAuthority("VIEW_INFO")
+                                .antMatchers(HttpMethod.GET, "/admin").hasAuthority("VIEW_ADMIN")
                                 .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults())
-                .logout(Customizer.withDefaults())
+                .formLogin(formLogin -> formLogin.loginPage("/login")
+                        .failureHandler(authenticationFailureHandler)
+                        .successHandler(authenticationSuccessHandler)
+                        .permitAll())
+
+                .logout(formLogout -> formLogout
+                        .deleteCookies("JSESSIONID")
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                        .logoutSuccessUrl("/logoutSuccess")
+                        .permitAll())
                 .build();
     }
 
@@ -63,7 +63,7 @@ public class WebSecurityConfig {//extends WebSecurityConfigurerAdapter{
     }
 
     @Bean
-    DelegatingPasswordEncoder passwordEncoder(){
+    public DelegatingPasswordEncoder passwordEncoder(){
         Map<String, PasswordEncoder> encoders = new HashMap<>();
         encoders.put("bcrypt", new BCryptPasswordEncoder());
         encoders.put("noop", NoOpPasswordEncoder.getInstance());
