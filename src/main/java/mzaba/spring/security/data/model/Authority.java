@@ -3,10 +3,14 @@ package mzaba.spring.security.data.model;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
+@Entity
 public class Authority implements GrantedAuthority {
 
     @Id
@@ -16,8 +20,8 @@ public class Authority implements GrantedAuthority {
 
     private String authority;
 
-   // @ManyToOne
-    //@JoinColumn(name = "username")
+    @ManyToOne
+    @JoinColumn(name = "username")
     private User user;
 
     @Override

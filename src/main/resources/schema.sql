@@ -5,6 +5,7 @@ CREATE TABLE user (
 );
 
 CREATE TABLE authority (
+    id bigint auto_increment primary key,
     username varchar_ignorecase(50) not null,
     authority varchar_ignorecase(50) not null,
     constraint fk_authorities_users foreign key (username) references user(username)

@@ -29,8 +29,9 @@ public class User implements UserDetails {
     private String username;
     private String password;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     @ElementCollection
-    private Collection<Authority> authorities;
+    private Set<Authority> authorities;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
